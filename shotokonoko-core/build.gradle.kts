@@ -1,5 +1,4 @@
 plugins {
-    id("org.jetbrains.dokka") version "1.7.10"
     `maven-publish`
 }
 

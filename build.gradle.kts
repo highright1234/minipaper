@@ -1,7 +1,8 @@
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.0.0"
     kotlin("jvm") version "1.7.10"
+    id("org.jetbrains.dokka") version "1.7.10" apply false
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 group = "io.github.highright1234"
@@ -9,6 +10,7 @@ group = "io.github.highright1234"
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.github.johnrengelman.shadow")
+    apply(plugin = "org.jetbrains.dokka")
 
     if (project.name.contains("bungee")) {
         repositories {
