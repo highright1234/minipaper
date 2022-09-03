@@ -3,10 +3,10 @@ MiniGame framework for Paper plugins
 
 ## How to Import Api
 1. Load api in gradle
-* Gradle
+* Gradle Kotlin DSL
 ```kotlin
 repositories {
-  maven { url 'https://jitpack.io' }
+  maven("https://jitpack.io")
 }
 
 dependencies {
