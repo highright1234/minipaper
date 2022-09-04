@@ -1,6 +1,9 @@
 # shotokonoko
 ~~shota + otokonoko~~
+
+
 [한국어](https://github.com/highright1234/shotokonoko/README.kr.md)
+
 MiniGame framework for Paper plugins
 
 ## How to Import Api
