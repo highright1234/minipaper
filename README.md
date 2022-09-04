@@ -2,7 +2,7 @@
 ~~shota + otokonoko~~
 
 
-[한국어](https://github.com/highright1234/shotokonoko/README.kr.md)
+[한국어](https://github.com/highright1234/shotokonoko/blob/master/README.kr.md)
 
 MiniGame framework for Paper plugins
 
