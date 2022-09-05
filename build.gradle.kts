@@ -5,7 +5,10 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
-group = "io.github.highright1234"
+extra.apply {
+    set("pluginName", "MiniPaper")
+    set("packageName", project.name)
+}
 
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
@@ -36,6 +39,7 @@ allprojects {
 
     dependencies {
         compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+        compileOnly(kotlin("reflect"))
         compileOnly(kotlin("stdlib-jdk8"))
     }
 

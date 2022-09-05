@@ -1,0 +1,5 @@
+name: ${pluginName}Debug
+main: ${group}.${packageName}.${pluginName}Debug
+version: ${version}
+depend:
+  - ${pluginName}

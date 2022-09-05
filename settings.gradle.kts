@@ -1,6 +1,4 @@
-rootProject.name = "shotokonoko"
-include("shotokonoko-api")
-include("shotokonoko-core")
-include("shotokonoko-debug")
-include("shotokonoko-bungee-api")
-include("shotokonoko-bungee")
+rootProject.name = "minipaper"
+listOf("api", "core", "debug", "bungee", "bungee-api").map {
+    "${rootProject.name}-$it"
+}.forEach(::include)
