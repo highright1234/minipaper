@@ -1,8 +1,6 @@
-# shotokonoko
-~~shota + otokonoko~~
+# minipaper
 
-
-[한국어](https://github.com/highright1234/shotokonoko/blob/master/README.kr.md)
+[한국어](https://github.com/highright1234/minipaper/blob/master/README.kr.md)
 
 MiniGame framework for Paper plugins
 
@@ -15,7 +13,7 @@ repositories {
 }
 
 dependencies {
-  compileOnly("com.github.highright1234.shotokonoko:shotokonoko-api:VERSION")
+  compileOnly("com.github.highright1234.minipaper:minipaper-api:VERSION")
 }
 ```
 2. Apply plugin to bukkit
