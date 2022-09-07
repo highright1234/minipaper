@@ -2,6 +2,7 @@ package io.github.highright1234.minipaper.internal.game.event
 
 import io.github.highright1234.minipaper.game.GameProcessor
 import io.github.highright1234.minipaper.game.event.GameEventManager
+import io.github.highright1234.minipaper.game.event.GameListener
 import io.github.highright1234.minipaper.game.event.ListeningAllEvent
 import io.github.highright1234.minipaper.game.event.RegisterBeforeStart
 import kotlinx.coroutines.*
@@ -12,10 +13,10 @@ import org.bukkit.event.entity.PlayerLeashEntityEvent
 import org.bukkit.event.player.PlayerEvent
 import org.bukkit.plugin.EventExecutor
 import java.lang.reflect.InvocationTargetException
-import kotlin.reflect.full.callSuspend
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.functions
-import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.*
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaMethod
 
 object GameEventManagerImpl : GameEventManager {
@@ -51,6 +52,26 @@ object GameEventManagerImpl : GameEventManager {
         )
         registerListener(gameProcessor, listener)
         return flow
+    }
+
+    override fun registerListeners(gameProcessor: GameProcessor, vararg listeners: KClass<out Listener>) {
+        listeners.forEach { clazz ->
+            val objectOfClazz = clazz.objectInstance
+            if (objectOfClazz != null) {
+                registerListener(gameProcessor, objectOfClazz)
+                return@forEach
+            }
+            val instance = clazz.createInstance()
+            if (clazz.isSubclassOf(GameListener::class)) {
+                clazz
+                    .declaredMemberProperties
+                    .filterIsInstance<KMutableProperty<GameProcessor>>()
+                    .find { it.name == "_gameProcessor" }!!
+                    .apply { isAccessible = true }
+                    .setter.call(instance, gameProcessor)
+            }
+            registerListener(gameProcessor, instance)
+        }
     }
 
     override fun registerListener(gameProcessor: GameProcessor, listener: Listener) {
@@ -92,6 +113,7 @@ object GameEventManagerImpl : GameEventManager {
                     handler.ignoreCancelled
                 )
             }
+        listeners
     }
 
     override fun unregisterListeners(gameProcessor: GameProcessor) {
@@ -121,6 +143,7 @@ object GameEventManagerImpl : GameEventManager {
         listeners
             .getOrElse(gameProcessor) { listOf() }
             .let {
+                if (it.contains(listener)) return
                 listeners = listeners.plus(
                     gameProcessor to it.plus(listener)
                 )

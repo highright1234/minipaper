@@ -1,4 +1,4 @@
 rootProject.name = "minipaper"
-listOf("api", "core", "debug", "bungee", "bungee-api").map {
+listOf("bukkit-api", "bukkit-core", "bungee-api", "bungee-core", "debug").map {
     "${rootProject.name}-$it"
 }.forEach(::include)

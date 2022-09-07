@@ -3,20 +3,25 @@ package io.github.highright1234.minipaper.game
 import io.github.highright1234.minipaper.MiniPaper
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.UUID
+import kotlin.reflect.KClass
 
 abstract class GameProcessor(val name : String) {
 
     val uuid = UUID.randomUUID()
+    var listeners = listOf<KClass<out Listener>>()
 
     init {
         if (MiniPaper.runningGameProcessor != null)
             throw IllegalStateException("Running GameProcessor must be one")
     }
+
+    val scoreboard = Bukkit.getScoreboardManager().newScoreboard
 
     private lateinit var _plugin : JavaPlugin
     val plugin get() = _plugin

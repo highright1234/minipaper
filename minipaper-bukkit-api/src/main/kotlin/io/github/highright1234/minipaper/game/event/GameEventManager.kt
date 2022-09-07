@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import org.bukkit.event.Event
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import kotlin.reflect.KClass
 
 interface GameEventManager {
 
@@ -18,6 +19,10 @@ interface GameEventManager {
 
     fun registerListener(
         gameProcessor: GameProcessor, listener: Listener
+    )
+
+    fun registerListeners(
+        gameProcessor: GameProcessor, vararg listeners : KClass<out Listener>
     )
 
     fun unregisterListeners(

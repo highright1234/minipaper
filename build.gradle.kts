@@ -37,10 +37,22 @@ allprojects {
         mavenCentral()
     }
 
+
     dependencies {
         compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
         compileOnly(kotlin("reflect"))
         compileOnly(kotlin("stdlib-jdk8"))
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+        testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
+        testImplementation("io.mockk:mockk:1.12.1")
+        // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
+        testImplementation("org.slf4j:slf4j-simple:2.0.0")
+    }
+
+    tasks.getByName<Test>("test") {
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
     }
 
     tasks {

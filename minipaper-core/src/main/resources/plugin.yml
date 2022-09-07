@@ -1,6 +1,0 @@
-name: ${pluginName}
-main: ${group}.${packageName}.${pluginName}Plugin
-version: ${version}
-libraries:
-  - io.github.monun:kommand-core:${kommandVersion}
-  - org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}

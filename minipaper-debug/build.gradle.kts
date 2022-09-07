@@ -1,6 +1,4 @@
 
-val api = project(":${rootProject.name}-api")
-
 dependencies {
-    implementation(api)
+    implementation(project(":${rootProject.name}-bukkit-api"))
 }

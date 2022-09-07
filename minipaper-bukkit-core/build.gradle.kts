@@ -2,7 +2,7 @@ plugins {
     `maven-publish`
 }
 
-val api = project(":${rootProject.name}-api")
+val api = project(":${rootProject.name}-bukkit-api")
 
 dependencies {
     compileOnly("io.github.monun:kommand-api:2.13.0")

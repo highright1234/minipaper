@@ -10,6 +10,11 @@ import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.inventory.ItemStack
 
 class TestGameProcessor : GameProcessor("test") {
+    init {
+        listeners = listOf(
+            TestListener::class
+        )
+    }
     private val spawn = Location(Bukkit.getWorld("world"), 0.0, 0.0, 0.0)
     override suspend fun onStart() {
         players.forEach { it.teleport(spawn) }
