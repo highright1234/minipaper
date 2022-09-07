@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-  compileOnly("com.github.highright1234.minipaper:minipaper-api:VERSION")
+  compileOnly("com.github.highright1234.minipaper:minipaper-bukkit-api:VERSION")
 }
 ```
 2. Apply plugin to bukkit
