@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-  compileOnly("com.github.highright1234.minipaper:minipaper-api:VERSION")
+  compileOnly("com.github.highright1234.minipaper:minipaper-bukkit-api:VERSION")
 }
 ```
 2. 버킷에 Core 적용하기
