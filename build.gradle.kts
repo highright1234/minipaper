@@ -15,37 +15,26 @@ allprojects {
     apply(plugin = "com.github.johnrengelman.shadow")
     apply(plugin = "org.jetbrains.dokka")
 
-    if (project.name.contains("bungee")) {
-        repositories {
-            maven("https://oss.sonatype.org/content/repositories/snapshots")
-        }
-        dependencies {
-            compileOnly("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
-        }
-    } else {
-        repositories {
-            maven("https://repo.papermc.io/repository/maven-public/")
-        }
-
-        dependencies {
-            compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
-        }
-
-    }
-
     repositories {
+        maven("https://oss.sonatype.org/content/repositories/snapshots")
+        maven("https://repo.papermc.io/repository/maven-public/")
         mavenCentral()
     }
 
 
     dependencies {
-        compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+        if ("bungee" in project.name) {
+            compileOnly("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
+        } else if ("bukkit" in project.name) {
+            compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
+        }
+        compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:${properties["coroutinesVersion"]}")
         compileOnly(kotlin("reflect"))
         compileOnly(kotlin("stdlib-jdk8"))
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
         testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
-        testImplementation("io.mockk:mockk:1.12.1")
+        testImplementation("io.mockk:mockk:1.12.7")
         // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
         testImplementation("org.slf4j:slf4j-simple:2.0.0")
     }

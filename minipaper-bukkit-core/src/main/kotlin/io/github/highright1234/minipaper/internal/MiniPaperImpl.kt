@@ -1,14 +1,16 @@
 package io.github.highright1234.minipaper.internal
 
-import io.github.highright1234.minipaper.game.GameProcessor
+import com.github.shynixn.mccoroutine.bukkit.launch
 import io.github.highright1234.minipaper.MiniPaper
 import io.github.highright1234.minipaper.bungee.PluginMessageUtil
 import io.github.highright1234.minipaper.coroutine.CoroutineManager
+import io.github.highright1234.minipaper.game.GameManager
+import io.github.highright1234.minipaper.game.GameProcessor
 import io.github.highright1234.minipaper.game.event.GameEventManager
 import io.github.highright1234.minipaper.internal.bungee.PluginMessageUtilImpl
 import io.github.highright1234.minipaper.internal.coroutine.CoroutineManagerImpl
+import io.github.highright1234.minipaper.internal.game.GameManagerImpl
 import io.github.highright1234.minipaper.internal.game.event.GameEventManagerImpl
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -18,6 +20,7 @@ object MiniPaperImpl : MiniPaper {
     override val pluginMessageUtil: PluginMessageUtil = PluginMessageUtilImpl
     override val eventManger: GameEventManager = GameEventManagerImpl
     override val coroutineManager: CoroutineManager = CoroutineManagerImpl
+    override val gameManager: GameManager = GameManagerImpl
     override var runningGameProcessor: GameProcessor? = null
     private set
 
@@ -28,10 +31,8 @@ object MiniPaperImpl : MiniPaper {
         val processor = gameProcessorClass.getConstructor().newInstance()
         processor.setup(plugin)
         runningGameProcessor = processor
-        processor.synchronousScope.launch {
-            withTimeout(1000L) {
-                processor.onCreated()
-            }
+        plugin.launch {
+            processor.onCreated()
         }
     }
 

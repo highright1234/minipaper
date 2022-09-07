@@ -5,4 +5,4 @@ import java.util.*
 
 val Iterable<UUID>.onlinePlayers get() =
     filter { Bukkit.getPlayer(it) != null }
-        .map { Bukkit.getPlayer(it) }
+        .map { Bukkit.getPlayer(it)!! }

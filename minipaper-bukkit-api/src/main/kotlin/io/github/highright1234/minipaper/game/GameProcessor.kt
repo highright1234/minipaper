@@ -1,6 +1,7 @@
 package io.github.highright1234.minipaper.game
 
 import io.github.highright1234.minipaper.MiniPaper
+import io.github.highright1234.minipaper.util.onlinePlayers
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import org.bukkit.Bukkit
@@ -11,9 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.util.UUID
 import kotlin.reflect.KClass
 
-abstract class GameProcessor(val name : String) {
+abstract class GameProcessor(val gameInfo: GameInfo) {
 
-    val uuid = UUID.randomUUID()
+    val uuid = UUID.randomUUID()!!
     var listeners = listOf<KClass<out Listener>>()
 
     init {
@@ -26,45 +27,56 @@ abstract class GameProcessor(val name : String) {
     private lateinit var _plugin : JavaPlugin
     val plugin get() = _plugin
 
-    var players = listOf<Player>()
+    var players = listOf<UUID>()
     private set
+
+    val onlinePlayers get() = players.onlinePlayers
 
     var isStarted = false
     private set
 
-    private lateinit var _synchronousScope : CoroutineScope
-    val synchronousScope : CoroutineScope get() = _synchronousScope
-
-    suspend fun <R> synchronousScope(block: suspend CoroutineScope.() -> R): R = synchronousScope.block()
+    private lateinit var _scope : CoroutineScope
+    val scope : CoroutineScope get() = _scope
 
     private fun setup(plugin: JavaPlugin) {
         _plugin = plugin
-        _synchronousScope = MiniPaper.coroutineManager.synchronousScopeOf(this)
+        _scope = MiniPaper.coroutineManager.scopeOf(this)
     }
 
     suspend fun start() {
-        onStart()
+        kotlin.runCatching {
+            onStart()
+        }.exceptionOrNull()?.printStackTrace()
         TODO()
     }
     suspend fun stop() {
-        onStop()
+        scope.cancel()
+        kotlin.runCatching {
+            onStop()
+        }.exceptionOrNull()?.printStackTrace()
         TODO()
+    }
+    suspend fun delete() {
+        kotlin.runCatching {
+            onDeleted()
+        }.exceptionOrNull()?.printStackTrace()
     }
 
     operator fun plusAssign(players: Collection<Player>) = players.toList().forEach(::addPlayer)
     operator fun minusAssign(players: Collection<Player>) = players.toList().forEach(::removePlayer)
     operator fun plusAssign(player: Player) = addPlayer(player)
     operator fun minusAssign(player: Player) = removePlayer(player)
-    operator fun contains(player: Player) = players.contains(player)
+    operator fun contains(player: Player) = players.onlinePlayers.contains(player)
+    operator fun contains(uuid: UUID) = players.contains(uuid)
 
     fun addPlayer(player: Player) {
-        if (player in players) return
-        players = players.plus(player)
+        if (player.uniqueId in players) return
+        players = players.plus(player.uniqueId)
     }
 
     fun removePlayer(player: Player) {
-        if (player !in players) return
-        players = players.minus(player)
+        if (player.uniqueId !in players) return
+        players = players.minus(player.uniqueId)
     }
 
     open suspend fun onCreated() {}

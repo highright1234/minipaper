@@ -91,15 +91,15 @@ object GameEventManagerImpl : GameEventManager {
                 val handler = function.findAnnotation<EventHandler>()!!
                 val isListeningAllEvent = function.hasAnnotation<ListeningAllEvent>()
                 val isRegisterBeforeStart = function.hasAnnotation<RegisterBeforeStart>()
-                val run = fun Listener.(event: Event) { runBlocking { function.callSuspend(event) } }
+                val run = fun (event: Event) { runBlocking { function.callSuspend(event) } }
 
-                val eventExecutor = eventExecutor(eventClass) { listener, event ->
+                val eventExecutor = eventExecutor(eventClass) { _, event ->
                     if (isRegisterBeforeStart || gameProcessor.isStarted) {
                         if (isListeningAllEvent) {
-                            listener.run(event)
+                            run(event)
                         } else {
                             if (isGamesEvent(event, gameProcessor)) {
-                                listener.run(event)
+                                run(event)
                             }
                         }
                     }
@@ -164,8 +164,8 @@ object GameEventManagerImpl : GameEventManager {
 
     private fun isGamesEvent(event: Event, gameProcessor: GameProcessor): Boolean =
         when (event) {
-            is PlayerEvent -> event.player in gameProcessor.players
-            is PlayerLeashEntityEvent -> event.player in gameProcessor.players
+            is PlayerEvent -> event.player in gameProcessor
+            is PlayerLeashEntityEvent -> event.player in gameProcessor
             else -> true
         }
 }

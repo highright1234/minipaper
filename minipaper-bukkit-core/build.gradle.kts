@@ -5,7 +5,9 @@ plugins {
 val api = project(":${rootProject.name}-bukkit-api")
 
 dependencies {
-    compileOnly("io.github.monun:kommand-api:2.13.0")
+    compileOnly("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.4.0")
+    compileOnly("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.4.0")
+    compileOnly("io.github.monun:kommand-api:${properties["kommandVersion"]}")
     implementation(api)
 }
 

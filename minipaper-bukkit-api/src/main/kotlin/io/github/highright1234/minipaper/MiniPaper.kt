@@ -2,6 +2,7 @@ package io.github.highright1234.minipaper
 
 import io.github.highright1234.minipaper.bungee.PluginMessageUtil
 import io.github.highright1234.minipaper.coroutine.CoroutineManager
+import io.github.highright1234.minipaper.game.GameManager
 import io.github.highright1234.minipaper.game.event.GameEventManager
 import io.github.highright1234.minipaper.game.GameProcessor
 import org.bukkit.plugin.java.JavaPlugin
@@ -12,6 +13,7 @@ interface MiniPaper {
     val eventManger: GameEventManager
     val coroutineManager: CoroutineManager
     val pluginMessageUtil: PluginMessageUtil
+    val gameManager: GameManager
     fun register(plugin: JavaPlugin, gameProcessorClass : Class<out GameProcessor>)
 }
 
