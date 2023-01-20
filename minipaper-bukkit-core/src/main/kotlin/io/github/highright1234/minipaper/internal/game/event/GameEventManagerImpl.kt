@@ -18,6 +18,7 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.jvmErasure
 
 object GameEventManagerImpl : GameEventManager {
 
@@ -76,7 +77,7 @@ object GameEventManagerImpl : GameEventManager {
 
     override fun registerListener(gameProcessor: GameProcessor, listener: Listener) {
         listener::class.functions
-            .filter { it.hasAnnotation<ListeningAllEvent>() }
+            .filter { it.hasAnnotation<EventHandler>() }
             .forEach { function ->
                 if (function.parameters.size != 1 == (function.isSuspend && function.parameters.size != 2)) {
                     gameProcessor.plugin.logger.severe(
@@ -87,7 +88,8 @@ object GameEventManagerImpl : GameEventManager {
                     return@forEach
                 }
 
-                val eventClass = function.javaMethod!!.parameters[0].javaClass.asSubclass(Event::class.java)
+                // 이상하게 첫번째는 자기껄로 되어있음(정적 함수나 오브젝트 비스무리한것 때문으로 추정)
+                val eventClass = function.parameters[1].type.jvmErasure.java.asSubclass(Event::class.java)
                 val handler = function.findAnnotation<EventHandler>()!!
                 val isListeningAllEvent = function.hasAnnotation<ListeningAllEvent>()
                 val isRegisterBeforeStart = function.hasAnnotation<RegisterBeforeStart>()
@@ -113,7 +115,6 @@ object GameEventManagerImpl : GameEventManager {
                     handler.ignoreCancelled
                 )
             }
-        listeners
     }
 
     override fun unregisterListeners(gameProcessor: GameProcessor) {

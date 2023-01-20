@@ -4,8 +4,9 @@ import io.github.highright1234.minipaper.game.GameProcessor
 import org.bukkit.scoreboard.Team
 import java.util.*
 
-interface GameTeam {
-    val owner : GameProcessor
-    val players: Collection<UUID>
+class GameTeam(
+    val owner: GameProcessor,
     val bukkitTeam: Team
+) {
+    var players: Collection<UUID> = listOf()
 }

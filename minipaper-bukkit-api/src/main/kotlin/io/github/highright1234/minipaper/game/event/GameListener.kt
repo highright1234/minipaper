@@ -4,6 +4,6 @@ import io.github.highright1234.minipaper.game.GameProcessor
 import org.bukkit.event.Listener
 
 abstract class GameListener<T: GameProcessor> : Listener {
-    private lateinit var _gameProcessor : T
+    internal lateinit var _gameProcessor : T
     val gameProcessor : T get() = _gameProcessor
 }
