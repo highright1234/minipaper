@@ -5,17 +5,19 @@ object PluginChannels {
     object SubChannels {
         /**
          *
-         * when bungee send:
-         * player: a joining player
-         * structure:
-         * empty
-         *
-         * when bukkit send:
          * player: a joining player
          * structure:
          * game's name : string
          *
          */
         const val JOIN_MINI_GAME = "JoinMiniGame"
+
+        /**
+         *
+         * player: a joining player
+         * structure:
+         * processor's unique-id : uuid
+         */
+        const val JOIN_PROCESSOR = "JoinProcessor"
     }
 }

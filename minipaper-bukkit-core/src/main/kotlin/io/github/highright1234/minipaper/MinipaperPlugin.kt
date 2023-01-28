@@ -1,10 +1,16 @@
 package io.github.highright1234.minipaper
 
+import com.infernalsuite.aswm.api.SlimePlugin
 import io.github.highright1234.minipaper.config.MiniPaperConfig
 import io.github.highright1234.minipaper.internal.MiniPaperImpl
+import io.github.highright1234.minipaper.internal.util.world.DefaultWorldUtil
+import io.github.highright1234.minipaper.internal.util.world.SlimeWorldUtil
 import io.github.highright1234.minipaper.kommand.MiniPaperKommand
+import io.github.highright1234.minipaper.pluginmessage.BungeePluginMessageListener
+import io.github.highright1234.shotokonoko.bungee.MessageChannel
 import io.github.monun.kommand.kommand
 import io.github.monun.tap.config.ConfigSupport
+import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.BufferedReader
 import java.io.File
@@ -15,13 +21,13 @@ import java.util.*
 class MinipaperPlugin : JavaPlugin() {
 
     companion object {
-        private lateinit var plugin_: JavaPlugin
+        private lateinit var plugin_: MinipaperPlugin
         val plugin get() = plugin_
     }
 
 
     override fun onEnable() {
-        MiniPaperImpl.plugin = this
+        MiniPaperImpl.init(this)
         loadConfigs()
         plugin_ = this
         kommand {
@@ -38,24 +44,28 @@ class MinipaperPlugin : JavaPlugin() {
             logger.info("activated as default-mode")
         }
 
-        if ( (isOnlineMode && isBungee) && !MiniPaper.isDebug ) {
+        if ( isOnlineMode && isBungee ) {
             repeat(10) {
                 logger.warning("Bungeecord setting can't be with online-mode")
             }
             pluginLoader.disablePlugin(this)
             return
         }
-//        val cannotRun = !( isBungeeSetting || MiniPaper.isDebug )
-//        if ( cannotRun ) {
-//            repeat(10) {
-//                logger.warning("you have to run as bungee or debug if you want to use Minipaper")
-//            }
-//            pluginLoader.disablePlugin(this)
-//            return
-//        }
+
+        if (isBungeeSetting) {
+            val messageChannel = MessageChannel("minipaper:main")
+            messageChannel.registerIncoming(BungeePluginMessageListener)
+        }
+
+        (Bukkit.getPluginManager().getPlugin("SlimeWorldManager") as SlimePlugin?)?.let { slimePlugin ->
+            val slimeLoader = slimePlugin.getLoader(MiniPaperConfig.slimeLoader)
+            MiniPaperImpl.worldUtil = SlimeWorldUtil(slimePlugin, slimeLoader)
+        } ?: run {
+            MiniPaperImpl.worldUtil = DefaultWorldUtil
+        }
     }
 
-    private val isBungee get() = server.spigot().spigotConfig.getBoolean("settings.bungeecord")
+    val isBungee get() = server.spigot().spigotConfig.getBoolean("settings.bungeecord")
     private val isOnlineMode get() = properties.getProperty("online-mode").toBoolean()
 
     private val properties : Properties get() {

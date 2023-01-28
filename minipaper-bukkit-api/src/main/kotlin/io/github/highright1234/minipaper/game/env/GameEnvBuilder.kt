@@ -1,12 +1,15 @@
 package io.github.highright1234.minipaper.game.env
 
-import io.github.highright1234.minipaper.event.EnvCreatedEvent
-import io.github.highright1234.minipaper.event.EnvCreatingEvent
+import com.github.shynixn.mccoroutine.bukkit.scope
+import io.github.highright1234.minipaper.MiniPaper
+import io.github.highright1234.minipaper.event.processor.EnvPostCreateEvent
+import io.github.highright1234.minipaper.event.processor.EnvPreCreateEvent
 import io.github.highright1234.minipaper.game.GameProcessor
 import io.github.highright1234.minipaper.plugin
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import org.bukkit.Bukkit
 import org.bukkit.World
-import org.bukkit.WorldCreator
 
 object GameEnvBuilder {
 
@@ -17,29 +20,33 @@ object GameEnvBuilder {
     }
 
     private val characters = ( '0'..'9' ) + ( 'A'..'Z' ) + ( 'a'..'z' )
-    fun create(owner: GameProcessor, vararg origins: World): List<Pair<World, World>> {
+
+
+    suspend fun create(owner: GameProcessor, vararg origins: String): List<Pair<String, World>> {
         val uniqueName = List(6) { characters.random() }.joinToString("")
         val newWorlds = origins
-            .asSequence()
             .map {
-                val name = "${uniqueName}_${it.name}"
-                it to WorldCreator(name).copy(it)
+                val name = "${uniqueName}_${it}"
+                // keepSpawnLoaded 저거는 렉 줄여주는거
+                it to name
             }
-            .onEach { (world, creator) ->
-                logger.info("Creating ${creator.name()} from ${world.name}")
-            }
-            .map { (world, creator) ->
-                val event = EnvCreatingEvent(creator.name(), world, owner)
+            .map { (origin, newWorldName) -> plugin.scope.async {
+                val event = EnvPreCreateEvent(newWorldName, origin, owner)
                 Bukkit.getPluginManager().callEvent(event)
-                world to (event.world ?: creator.createWorld()!!)
-            }
+                val world = event.world ?: run {
+                    logger.info("Making $newWorldName from $origin")
+                    MiniPaper.worldUtil.cloneWorld(origin, newWorldName)
+                }
+                origin to world
+            } }
+            .awaitAll()
             .onEach { (origin, world) ->
                 addOwnership(owner, world)
-                val event = EnvCreatedEvent(world, origin, owner)
+                val event = EnvPostCreateEvent(world, origin, owner)
                 Bukkit.getPluginManager().callEvent(event)
-                logger.info("${world.name} is successfully created from ${origin.name}.")
+                logger.info("${world.name} is successfully created from ${origin}.")
             }
-        return newWorlds.toList()
+        return newWorlds
     }
 
 }

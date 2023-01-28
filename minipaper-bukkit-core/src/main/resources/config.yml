@@ -1,8 +1,19 @@
 # it makes debug logs
 is-debug: false
 
+# TODO
 redis:
   host: localhost
   port: 6379
-  password:
+  username: root
+  password: root
   ssl: true
+
+
+# set this if you use ASWM(Advanced SlimeWorldManager)
+slime-loader: mongodb
+
+
+# if settings.bungeecord is true, this value follow bungee's MiniPaper/config.yml value
+# MANY_PLAYERS, FEW_PLAYERS, RANDOM
+priority-by: MANY_PLAYERS

@@ -5,6 +5,6 @@ import java.util.UUID
 
 interface GameProcessorInfo {
     val game: GameInfo
-    val uuid: UUID
+    val uniqueId: UUID
     val owner: ServerInfo
 }

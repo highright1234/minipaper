@@ -21,6 +21,15 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
+    java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    kotlin {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+    tasks {
+        withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> { kotlinOptions { jvmTarget = "17" } }
+    }
     repositories {
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -97,6 +106,4 @@ subprojects {
         }
         tasks.named("build") { finalizedBy("pluginsUpdate") }
     }
-
-    java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }

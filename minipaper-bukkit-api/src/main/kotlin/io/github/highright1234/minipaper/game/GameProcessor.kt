@@ -3,6 +3,7 @@ package io.github.highright1234.minipaper.game
 import com.google.common.reflect.ClassPath
 import io.github.highright1234.minipaper.MiniPaper
 import io.github.highright1234.minipaper.event.*
+import io.github.highright1234.minipaper.event.processor.*
 import io.github.highright1234.minipaper.game.event.GameListener
 import io.github.highright1234.minipaper.game.provider.DefaultDeletionProvider
 import io.github.highright1234.minipaper.game.provider.DeletionProvider
@@ -22,7 +23,7 @@ import kotlin.reflect.KClass
 
 abstract class GameProcessor(val gameInfo: GameInfo) {
 
-    val uuid = UUID.randomUUID()!!
+    val uniqueId = UUID.randomUUID()!!
     var listeners = listOf<KClass<out Listener>>()
     val world get() = worlds.first()
 
@@ -30,11 +31,6 @@ abstract class GameProcessor(val gameInfo: GameInfo) {
     val worlds: List<World> get() = _world.toList()
 
     var deletionProvider: DeletionProvider<GameProcessor>? = DefaultDeletionProvider
-
-    init {
-        if (MiniPaper.runningGameProcessor != null)
-            throw IllegalStateException("Running GameProcessor must be one")
-    }
 
     var teamCount = 0
         set(value) { field = if ( 0 < value ) value else 0 }
@@ -60,6 +56,8 @@ abstract class GameProcessor(val gameInfo: GameInfo) {
 
     private val _team = arrayListOf<GameTeam>()
     val team: List<GameTeam> get() = _team.toList()
+
+
 
     suspend fun start() {
 

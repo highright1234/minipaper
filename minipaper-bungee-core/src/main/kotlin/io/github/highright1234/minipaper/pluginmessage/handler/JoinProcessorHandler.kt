@@ -2,10 +2,11 @@ package io.github.highright1234.minipaper.pluginmessage.handler
 
 import com.google.common.io.ByteArrayDataInput
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.*
 
-object JoinGameHandler : PluginMessageHandler {
+object JoinProcessorHandler: PluginMessageHandler {
     override fun handle(receiver: ProxiedPlayer, bytes: ByteArrayDataInput) {
-        val game = bytes.readGame()
-        TODO("processor 선택")
+        val processor = bytes.readProcessor()
+        receiver.connect(processor.owner)
     }
 }

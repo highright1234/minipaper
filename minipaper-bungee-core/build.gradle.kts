@@ -15,6 +15,7 @@ repositories {
 dependencies {
     bungeeLibrary("com.github.shynixn.mccoroutine:mccoroutine-bungeecord-api:${Versions.MC_COROUTINE}")
     bungeeLibrary("com.github.shynixn.mccoroutine:mccoroutine-bungeecord-core:${Versions.MC_COROUTINE}")
+    bungeeLibrary("io.github.highright1234:shotokonoko-bungee:${Versions.SHOTOKONOKO}")
     library("io.lettuce:lettuce-core:6.2.0.RELEASE")
     library("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.COROUTINE}")
     library(kotlin("stdlib-jdk8"))

@@ -10,9 +10,6 @@ class MinipaperDebugPlugin : JavaPlugin() {
     }
     override fun onEnable() {
         plugin = this
-        MiniPaper.register(this, TestGameProcessor::class.java)
-        MiniPaper.runningGameProcessor?.let {
-            it += Bukkit.getOnlinePlayers()
-        }
+        MiniPaper.gameManager.register(this, TestGameProcessor::class.java)
     }
 }

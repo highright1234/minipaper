@@ -9,9 +9,10 @@ object GameManagerImpl: GameManager {
 
     override val games: Map<String, GameInfo>
     get() = gameProcessors
-        .map { (_, processor) -> processor.game }.toSet()
+        .values.flatten()
+        .map { it.game }.toSet()
         .associateBy { it.name }
-    override val gameProcessors: Map<ServerInfo, GameProcessorInfo> = emptyMap()
+    override val gameProcessors: Map<ServerInfo, Collection<GameProcessorInfo>> = emptyMap()
 
     private val processorsOfGameInfo: MutableMap<GameInfoImpl, MutableList<GameProcessorInfoImpl>> = mutableMapOf()
     internal fun processorsOf(gameInfoImpl: GameInfoImpl) : Collection<GameProcessorInfoImpl> =

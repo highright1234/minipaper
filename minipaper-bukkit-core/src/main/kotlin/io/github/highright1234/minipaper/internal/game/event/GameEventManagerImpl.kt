@@ -1,5 +1,6 @@
 package io.github.highright1234.minipaper.internal.game.event
 
+import io.github.highright1234.minipaper.event.processor.ProcessorEvent
 import io.github.highright1234.minipaper.game.GameProcessor
 import io.github.highright1234.minipaper.game.event.GameEventManager
 import io.github.highright1234.minipaper.game.event.GameListener
@@ -8,16 +9,22 @@ import io.github.highright1234.minipaper.game.event.RegisterBeforeStart
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import org.bukkit.event.*
+import org.bukkit.event.block.BlockEvent
+import org.bukkit.event.entity.EntityEvent
 import org.bukkit.event.entity.PlayerLeashEntityEvent
+import org.bukkit.event.hanging.HangingEvent
 import org.bukkit.event.player.PlayerEvent
+import org.bukkit.event.vehicle.VehicleEvent
+import org.bukkit.event.weather.WeatherEvent
+import org.bukkit.event.world.WorldEvent
 import org.bukkit.plugin.EventExecutor
 import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.isAccessible
-import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.jvmErasure
 
 object GameEventManagerImpl : GameEventManager {
@@ -37,7 +44,7 @@ object GameEventManagerImpl : GameEventManager {
         listener = object : Listener {}
         @Suppress("UNCHECKED_CAST")
         val eventExecutor = EventExecutor { _, event ->
-            if (listeningAllEvent == isGamesEvent(event, gameProcessor)) {
+            if (listeningAllEvent == isGameEvent(event, gameProcessor)) {
                 HandlerList.unregisterAll(listener)
                 runBlocking {
                     flow.emit(event as T)
@@ -100,7 +107,7 @@ object GameEventManagerImpl : GameEventManager {
                         if (isListeningAllEvent) {
                             run(event)
                         } else {
-                            if (isGamesEvent(event, gameProcessor)) {
+                            if (isGameEvent(event, gameProcessor)) {
                                 run(event)
                             }
                         }
@@ -163,10 +170,32 @@ object GameEventManagerImpl : GameEventManager {
         }
     }
 
-    private fun isGamesEvent(event: Event, gameProcessor: GameProcessor): Boolean =
-        when (event) {
-            is PlayerEvent -> event.player in gameProcessor
-            is PlayerLeashEntityEvent -> event.player in gameProcessor
+    private fun isGameEvent(event: Event, gameProcessor: GameProcessor): Boolean {
+        val players = gameProcessor.onlinePlayers
+        val worlds = gameProcessor.worlds
+        return when (event) {
+            is PlayerEvent -> event.player in players
+            is EntityEvent -> {
+                if (event.entity is Player) {
+                    event.entity in players
+                } else {
+                    event.entity.world in worlds
+                }
+            }
+            is WorldEvent -> event.world in worlds
+            is WeatherEvent -> event.world in worlds
+            is BlockEvent -> event.block.world in worlds
+            is PlayerLeashEntityEvent -> event.player in players
+            is VehicleEvent -> {
+                event.vehicle.passengers
+                    .filterIsInstance<Player>()
+                    .find { it in players }
+                    ?.let { return true }
+                event.vehicle.world in worlds
+            }
+            is HangingEvent -> event.entity.world in worlds
+            is ProcessorEvent -> event.gameProcessor == gameProcessor
             else -> true
         }
+    }
 }

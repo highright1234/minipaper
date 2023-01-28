@@ -2,9 +2,9 @@ package io.github.highright1234.minipaper.pluginmessage.handler
 
 import com.google.common.io.ByteArrayDataInput
 import io.github.highright1234.minipaper.game.GameInfo
-import io.github.highright1234.minipaper.game.GameProcessorInfo
+import io.github.highright1234.minipaper.game.GameProcessor
 import io.github.highright1234.minipaper.internal.MiniPaperImpl
-import net.md_5.bungee.api.connection.ProxiedPlayer
+import org.bukkit.entity.Player
 import java.util.UUID
 
 
@@ -12,7 +12,7 @@ fun ByteArrayDataInput.readGame(): GameInfo {
     return readUTF().let { MiniPaperImpl.gameManager.games.getOrElse(it) { error("Not found Mini-game") } }
 }
 
-fun ByteArrayDataInput.readProcessor(): GameProcessorInfo {
+fun ByteArrayDataInput.readProcessor(): GameProcessor {
     return readUTF()
         .let(UUID::fromString)
         .let { uniqueId ->
@@ -21,5 +21,5 @@ fun ByteArrayDataInput.readProcessor(): GameProcessorInfo {
 }
 
 interface PluginMessageHandler {
-    fun handle(receiver : ProxiedPlayer, bytes : ByteArrayDataInput)
+    fun handle(sender : Player, bytes : ByteArrayDataInput)
 }
