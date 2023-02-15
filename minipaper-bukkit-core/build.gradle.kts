@@ -47,7 +47,7 @@ bukkit {
     name = pluginName
     main = "${rootProject.group}.$directoryName.$pluginName" + "Plugin"
     author = "HighRight"
-    softDepend = listOf("SlimeWorldManager")
+    softDepend = listOf("SlimeWorldManager", "PlaceholderAPI")
     permissions {
         val op = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.OP
         register("minipaper.*") {

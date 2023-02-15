@@ -63,6 +63,9 @@ class MinipaperPlugin : JavaPlugin() {
         } ?: run {
             MiniPaperImpl.worldUtil = DefaultWorldUtil
         }
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            Papi.register()
+        }
     }
 
     val isBungee get() = server.spigot().spigotConfig.getBoolean("settings.bungeecord")

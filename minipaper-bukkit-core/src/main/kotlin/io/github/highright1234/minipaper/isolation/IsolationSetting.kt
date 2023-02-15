@@ -5,6 +5,7 @@ import io.github.monun.tap.config.Config
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
+// TODO config
 abstract class IsolationSetting: ConfigFrame() {
 
     abstract val bypassPermission: String
