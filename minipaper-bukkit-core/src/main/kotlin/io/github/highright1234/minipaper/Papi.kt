@@ -7,9 +7,9 @@ object Papi {
     fun register() {
         papi {
             expansion("minipaper") {
-                then("game") {
-                    then("property") {
-                        then("field") {
+                argument("game") {
+                    argument("property") {
+                        argument("field") {
                             executes {
                                 val gameName by arguments
                                 val property by arguments
