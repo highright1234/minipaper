@@ -6,13 +6,13 @@ import org.bukkit.plugin.java.JavaPlugin
 
 
 fun Iterable<GameProcessor>.pickOne(): GameProcessor {
-    val list = shuffled()
+    val list = shuffled().filter { it.isJoinable }
     return when (MiniPaper.gameManager.priorityBy) {
         PriorityBy.MANY_PLAYERS -> {
-            list.maxByOrNull { it.players.size }!!
+            list.maxBy { it.players.size }
         }
         PriorityBy.FEW_PLAYERS -> {
-            list.minByOrNull { it.players.size }!!
+            list.maxBy { it.players.size }
         }
         PriorityBy.RANDOM -> {
             list.first()
@@ -24,8 +24,13 @@ interface GameManager {
 
     var priorityBy: PriorityBy
 
-    fun register(plugin: JavaPlugin, gameProcessorClass : Class<out GameProcessor>)
+    suspend fun register(gameInfo: GameInfo, gameProcessorClass : Class<out GameProcessor>)
+    suspend fun createProcessor(gameInfo: GameInfo)
+
     val games : Map<String, GameInfo>
     val gameProcessors: Map<GameInfo, Collection<GameProcessor>>
+
+
+    fun getGameDatastore(gameInfo: GameInfo, property: String): GameDatastore
 
 }

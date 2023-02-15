@@ -12,7 +12,7 @@ object Papi {
                             val game by arguments
                             val field by arguments
 
-                            TODO()
+                            TODO("스토리지")
                         }
                     }
                 }

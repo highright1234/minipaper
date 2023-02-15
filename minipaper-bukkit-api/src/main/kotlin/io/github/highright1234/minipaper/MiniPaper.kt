@@ -4,6 +4,7 @@ import io.github.highright1234.minipaper.coroutine.CoroutineManager
 import io.github.highright1234.minipaper.game.GameManager
 import io.github.highright1234.minipaper.game.event.GameEventManager
 import io.github.highright1234.minipaper.game.GameProcessor
+import io.github.highright1234.minipaper.game.queue.QueueManager
 import io.github.highright1234.minipaper.util.world.WorldUtil
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
@@ -19,6 +20,7 @@ interface MiniPaper {
     val isDebug: Boolean
 
     val gameManager: GameManager
+    val queueManager: QueueManager
     val eventManger: GameEventManager
     val coroutineManager: CoroutineManager
 

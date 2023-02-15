@@ -8,7 +8,6 @@ import io.github.highright1234.minipaper.game.event.GameListener
 import io.github.highright1234.minipaper.game.provider.DefaultDeletionProvider
 import io.github.highright1234.minipaper.game.provider.DeletionProvider
 import io.github.highright1234.minipaper.game.team.GameTeam
-import io.github.highright1234.minipaper.game.team.maker.TeamMaker
 import io.github.highright1234.minipaper.util.onlinePlayers
 import io.github.highright1234.minipaper.util.scoreboard.SmartScoreboard
 import kotlinx.coroutines.*
@@ -16,29 +15,32 @@ import kotlinx.coroutines.flow.Flow
 import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import java.util.UUID
+import java.util.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KClass
 
-abstract class GameProcessor(val gameInfo: GameInfo) {
+abstract class GameProcessor {
+    @Suppress("Unused")
+    private fun init(gameInfo: GameInfo) {
+        _gameInfo = gameInfo
+    }
 
+    private lateinit var _gameInfo: GameInfo
+    val gameInfo: GameInfo get() = _gameInfo
     val uniqueId = UUID.randomUUID()!!
-    var listeners = listOf<KClass<out Listener>>()
     val world get() = worlds.first()
+
+    open val isJoinable
+    get() = gameInfo.playerSetting.maxSize > players.size &&
+            (!isStarted || gameInfo.playerSetting.isJoinableInProgress)
 
     internal val _world = mutableListOf<World>()
     val worlds: List<World> get() = _world.toList()
 
-    var deletionProvider: DeletionProvider<GameProcessor>? = DefaultDeletionProvider
+    open var deletionProvider: DeletionProvider<GameProcessor>? = DefaultDeletionProvider
 
-    var teamCount = 0
-        set(value) { field = if ( 0 < value ) value else 0 }
-
-    // TODO
-    // 팀관련
-    var teamMaker: TeamMaker? = null
-    var scoreboard: SmartScoreboard? = null
+    open var scoreboard: SmartScoreboard? = null
 
     val plugin = gameInfo.plugin
 
@@ -48,25 +50,21 @@ abstract class GameProcessor(val gameInfo: GameInfo) {
     val onlinePlayers get() = players.onlinePlayers
 
     var isStarted = false
-    private set
+        private set
 
-    val scope : CoroutineScope get() = MiniPaper.coroutineManager.scopeOf(this)
+    val scope: CoroutineScope get() = MiniPaper.coroutineManager.scopeOf(this)
     val minecraftDispatcher: CoroutineContext get() = MiniPaper.coroutineManager.minecraftDispatcherOf(this)
     val asyncDispatcher: CoroutineContext get() = MiniPaper.coroutineManager.asyncDispatcherOf(this)
 
-    private val _team = arrayListOf<GameTeam>()
-    val team: List<GameTeam> get() = _team.toList()
+    internal val _team = arrayListOf<GameTeam>()
+    open val teams: List<GameTeam> get() = _team.toList()
 
+    fun getProperty(name: String): GameDatastore = gameInfo.getProperty(name)
 
 
     suspend fun start() {
 
-        if ( 0 < teamCount ) {
-            teamMaker?.makeTeam(
-                teamCount,
-                onlinePlayers,
-            )?.let { _team += it }
-        }
+        gameInfo.teamSetting?.createTeam(this)
 
         withContext(minecraftDispatcher) {
             kotlin.runCatching {
@@ -109,13 +107,22 @@ abstract class GameProcessor(val gameInfo: GameInfo) {
     operator fun contains(uuid: UUID) = players.contains(uuid)
 
     fun addPlayer(player: Player) {
+        require(isJoinable) { "$uniqueId ${gameInfo.name} is not join-able" }
         if (!player.isOnline) return
         if (player.uniqueId in players) return
         _players += player.uniqueId
 
         ProcessorPlayerJoinEvent(this@GameProcessor, player).callEvent()
+
+        if (gameInfo.autoSetting.autoStart && players.size >= gameInfo.playerSetting.minSize) {
+            scope.launch(minecraftDispatcher) {
+                start()
+            }
+        }
+
         // 플레이어 데이터 관련 처리
         // 에: 이밴트 키기
+        // 이게 뭔소리야
         // TODO
     }
 
@@ -157,9 +164,17 @@ abstract class GameProcessor(val gameInfo: GameInfo) {
             }
     }
 
-    /**
-     *
-     */
-    fun <T: Event> listen(clazz : Class<T>) : Flow<T> =
-        MiniPaper.eventManger.listen(this, clazz)
+
+    fun <T : Event> listenEvents(
+        clazz: Class<T>,
+        listeningAllEvent: Boolean = false,
+        priority: EventPriority = EventPriority.NORMAL,
+        ignoreCancelled: Boolean = false,
+    ): Flow<T> = MiniPaper.eventManger.listenEvents(
+        this,
+        clazz,
+        listeningAllEvent,
+        priority,
+        ignoreCancelled
+    )
 }

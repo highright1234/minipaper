@@ -1,14 +1,14 @@
 package io.github.highright1234.minipaper.game.team.maker
 
 import io.github.highright1234.minipaper.game.team.GameTeam
-import org.bukkit.entity.Player
+import java.util.*
 
 interface TeamMaker {
 
     fun makeTeam(
         teamSize: Int,
-        players : Collection<Player>,
-        scores: Map<Player, Int>? = null
+        players : Collection<UUID>,
+        scores: Map<UUID, Int>? = null
     ) : Collection<GameTeam>
 
 }

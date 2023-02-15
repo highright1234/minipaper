@@ -16,7 +16,7 @@ object PluginMessageListener : Listener {
         PluginChannels.SubChannels.JOIN_PROCESSOR to JoinProcessorHandler,
     )
     @EventHandler
-    fun PluginMessageEvent.on() {
+    suspend fun PluginMessageEvent.on() {
         if (receiver !is ProxiedPlayer || tag != PluginChannels.CHANNEL) return
         @Suppress("UnstableApiUsage")
         val input = ByteStreams.newDataInput(data)

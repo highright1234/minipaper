@@ -9,11 +9,21 @@ redis:
   password: root
   ssl: true
 
+# TODO
+mongodb:
+  host: localhost
+  port: 27017
+  auth: admin
+  username: root
+  password: root
+  database: minipaper
+
 
 # set this if you use ASWM(Advanced SlimeWorldManager)
 slime-loader: mongodb
 
 
+# It is for join game selecting algorithm
 # if settings.bungeecord is true, this value follow bungee's MiniPaper/config.yml value
 # MANY_PLAYERS, FEW_PLAYERS, RANDOM
 priority-by: MANY_PLAYERS

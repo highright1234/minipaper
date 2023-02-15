@@ -7,6 +7,6 @@ import java.util.*
 
 data class GameProcessorInfoImpl(
     override val game: GameInfo,
-    override val uuid: UUID,
+    override val uniqueId: UUID,
     override val owner: ServerInfo
 ) : GameProcessorInfo

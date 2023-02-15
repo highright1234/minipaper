@@ -13,5 +13,6 @@ class TestListener : GameListener<TestGameProcessor>() {
     @ListeningAllEvent
     suspend fun PlayerDeathEvent.on() {
         player.sendMessage("응애네")
+        gameProcessor.eliminatePlayer(player)
     }
 }

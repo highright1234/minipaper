@@ -13,7 +13,7 @@ object Team: SubKommand {
         node.then("team") {
             suspendingExecutes { context ->
                 val processor: GameProcessor by context
-                processor.team
+                processor.teams
                     .map { it.bukkitTeam.name to it.players }
                     .joinToString(
                         prefix = "",

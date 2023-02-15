@@ -8,7 +8,7 @@ object Versions {
     const val TAP = "4.8.0"
     const val COROUTINE = "1.6.4"
     const val MC_COROUTINE = "2.7.0"
-    const val SHOTOKONOKO = "0.1.2"
+    const val SHOTOKONOKO = "0.1.3"
 
     // FastAsyncWorldEdit
     const val FAWE = "2.0.1"

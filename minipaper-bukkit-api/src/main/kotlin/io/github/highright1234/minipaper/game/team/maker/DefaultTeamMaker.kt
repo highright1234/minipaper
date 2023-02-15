@@ -4,11 +4,17 @@ import io.github.highright1234.minipaper.game.GameProcessor
 import io.github.highright1234.minipaper.game.team.DefaultTeam
 import io.github.highright1234.minipaper.game.team.GameTeam
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
+import java.util.*
 
 class DefaultTeamMaker(
     private val processor: GameProcessor,
 ) : TeamMaker {
+
+    companion object {
+        val provider = object : TeamMakerProvider {
+            override fun makeTeamMaker(gameProcessor: GameProcessor): TeamMaker = DefaultTeamMaker(gameProcessor)
+        }
+    }
 
     val scoreboard = Bukkit.getScoreboardManager().newScoreboard
 
@@ -17,26 +23,28 @@ class DefaultTeamMaker(
      */
     override fun makeTeam(
         teamSize: Int,
-        players : Collection<Player>,
-        scores: Map<Player, Int>?
+        players : Collection<UUID>,
+        scores: Map<UUID, Int>?
     ): Collection<GameTeam> {
         if (teamSize == 0) return emptyList()
         if (teamSize == 1)
             return scoreboard.registerNewTeam(DefaultTeam.all[0].name)
                 .apply {
                     color(DefaultTeam.all[0].color)
-                    players.forEach(::addPlayer)
+                    players.mapNotNull { Bukkit.getPlayer(it) }.forEach(::addPlayer)
                 }
-                .let { GameTeam(processor, it) }
+                .let { team -> GameTeam(processor, team).also { it.players = players } }
                 .let { listOf(it) }
-        val members = players.toList()
-        if (teamSize == players.size) return List(teamSize) { i ->
+        val playerList = players.toList()
+        if (teamSize >= players.size) return List(players.size) { i ->
             scoreboard.registerNewTeam(DefaultTeam.all[i].name)
                 .apply {
                     color(DefaultTeam.all[i].color)
-                    addPlayer(members[i])
+                    playerList[i].let(Bukkit::getPlayer)?.let(::addPlayer)
                 }
-                .let { GameTeam(processor, it) }
+                .let { team ->
+                    GameTeam(processor, team).also { it.players = listOf(playerList[i]) }
+                }
         }
 
         return scores?.let { scoreTeam(teamSize, players, it) } ?: randomTeam(teamSize, players)
@@ -44,11 +52,11 @@ class DefaultTeamMaker(
 
     private fun scoreTeam(
         teamSize: Int,
-        players : Collection<Player>,
-        scores: Map<Player, Int>
+        players : Collection<UUID>,
+        scores: Map<UUID, Int>
     ): Collection<GameTeam> {
         val sorted = players.sortedByDescending { scores.getValue(it) }.toMutableList()
-        val teams = MutableList<ArrayList<Player>>(teamSize) { arrayListOf() }
+        val teams = MutableList<ArrayList<UUID>>(teamSize) { arrayListOf() }
         var highPosition = true
         var index = 0
         fun put() {
@@ -72,23 +80,25 @@ class DefaultTeamMaker(
         val formatted = teams.mapIndexed { i, members ->
             scoreboard.registerNewTeam(DefaultTeam.all[i].name)
                 .also { team ->
-                    members.forEach(team::addPlayer)
+                    members.mapNotNull { Bukkit.getPlayer(it) }.forEach(team::addPlayer)
                     team.color(DefaultTeam.all[i].color)
                 }
-                .let { GameTeam(processor, it) }
+                .let { team ->
+                    GameTeam(processor, team).also { it.players = members }
+                }
         }
 
         return formatted
     }
 
-    private fun randomTeam(teamSize: Int, players : Collection<Player>): Collection<GameTeam> =
+    private fun randomTeam(teamSize: Int, players : Collection<UUID>): Collection<GameTeam> =
         players.shuffled()
             .mapIndexed { index, player -> index to player }
             .groupBy { it.first % teamSize }
             .values.map { pair -> pair.map { it.second } }
             .mapIndexed { index, members ->
                 GameTeam(processor, scoreboard.registerNewTeam("$index")).also {
-                    it.players = members.map { player -> player.uniqueId }
+                    it.players = members
                 }
             }
 }

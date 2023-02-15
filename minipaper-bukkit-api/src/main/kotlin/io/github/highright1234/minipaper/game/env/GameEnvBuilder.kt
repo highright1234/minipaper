@@ -20,8 +20,6 @@ object GameEnvBuilder {
     }
 
     private val characters = ( '0'..'9' ) + ( 'A'..'Z' ) + ( 'a'..'z' )
-
-
     suspend fun create(owner: GameProcessor, vararg origins: String): List<Pair<String, World>> {
         val uniqueName = List(6) { characters.random() }.joinToString("")
         val newWorlds = origins

@@ -21,4 +21,7 @@ fun Player.joinGame(gameInfo: GameInfo) {
     joinGame(gameInfo.processors.pickOne())
 }
 
+fun UUID.toPlayer(): Player = Bukkit.getPlayer(this)!!
+fun UUID.toPlayerOrNull(): Player? = Bukkit.getPlayer(this)
+
 val Player.processor: GameProcessor? get() = MiniPaper.gameManager.gameProcessors.values.flatten().find { this in it }

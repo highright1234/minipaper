@@ -6,8 +6,10 @@ import io.github.highright1234.minipaper.game.event.GameEventManager
 import io.github.highright1234.minipaper.game.event.GameListener
 import io.github.highright1234.minipaper.game.event.ListeningAllEvent
 import io.github.highright1234.minipaper.game.event.RegisterBeforeStart
+import io.github.highright1234.shotokonoko.listener.exception.PlayerQuitException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.*
@@ -16,6 +18,7 @@ import org.bukkit.event.entity.EntityEvent
 import org.bukkit.event.entity.PlayerLeashEntityEvent
 import org.bukkit.event.hanging.HangingEvent
 import org.bukkit.event.player.PlayerEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.vehicle.VehicleEvent
 import org.bukkit.event.weather.WeatherEvent
 import org.bukkit.event.world.WorldEvent
@@ -29,26 +32,89 @@ import kotlin.reflect.jvm.jvmErasure
 
 object GameEventManagerImpl : GameEventManager {
 
+    private val mutex = Mutex()
     private var listeners = mapOf<GameProcessor, List<Listener>>()
+    override suspend fun <T : Event> listen(
+        gameProcessor: GameProcessor,
+        player: Player,
+        clazz: Class<T>,
+        listeningAllEvent: Boolean,
+        priority: EventPriority,
+        ignoreCancelled: Boolean,
+        filter: (T) -> Boolean
+    ): Result<T> {
+        val exitListener = object: Listener {  }
+        val listener = object: Listener {  }
+        val completableDeferred = CompletableDeferred<Result<T>>()
+        registerEvent(clazz, listener, priority, eventExecutor(clazz, gameProcessor, listeningAllEvent) { _, event ->
+            if (filter(event)) {
+                completableDeferred.complete(Result.success(event))
+                HandlerList.unregisterAll(listener)
+                HandlerList.unregisterAll(exitListener)
+            }
+        }, gameProcessor, ignoreCancelled)
+        val eventExecutor = EventExecutor { _, event ->
+            event as PlayerQuitEvent
+            if (player != event.player) return@EventExecutor
+            completableDeferred.complete(Result.failure(PlayerQuitException()))
+            HandlerList.unregisterAll(listener)
+            HandlerList.unregisterAll(exitListener)
+        }
+        registerEvent(
+            PlayerQuitEvent::class.java,
+            exitListener,
+            EventPriority.NORMAL,
+            eventExecutor,
+            gameProcessor, ignoreCancelled
+        )
 
-    //    private var listeners = LinkedListMultimap.create<GameProcessor, Listener>()
-    override fun <T : Event> listen(
+        return completableDeferred.await()
+    }
+
+    override suspend fun <T : Event> listen(
         gameProcessor: GameProcessor,
         clazz: Class<T>,
         listeningAllEvent: Boolean,
         priority: EventPriority,
         ignoreCancelled: Boolean,
-    ): Flow<T> {
+        filter: (T) -> Boolean
+    ): T {
+
+        val listener = object: Listener {  }
+        val completableDeferred = CompletableDeferred<T>()
+        val eventExecutor = eventExecutor(clazz, gameProcessor, listeningAllEvent) { _, event ->
+            if (filter(event)) {
+                completableDeferred.complete(event)
+                HandlerList.unregisterAll(listener)
+            }
+        }
+        registerEvent(
+            clazz,
+            listener,
+            priority,
+            eventExecutor,
+            gameProcessor,
+            ignoreCancelled
+        )
+        return completableDeferred.await()
+    }
+
+    override fun <T : Event> listenEvents(
+        gameProcessor: GameProcessor,
+        clazz: Class<T>,
+        listeningAllEvent: Boolean,
+        priority: EventPriority,
+        ignoreCancelled: Boolean,
+    ): SharedFlow<T> {
         val flow = MutableSharedFlow<T>()
         lateinit var listener: Listener
         listener = object : Listener {}
-        @Suppress("UNCHECKED_CAST")
-        val eventExecutor = EventExecutor { _, event ->
-            if (listeningAllEvent == isGameEvent(event, gameProcessor)) {
-                HandlerList.unregisterAll(listener)
-                runBlocking {
-                    flow.emit(event as T)
-                }
+        val eventExecutor = eventExecutor(clazz, gameProcessor, listeningAllEvent) { _, event ->
+            val dispatcher =
+                if (Bukkit.isPrimaryThread()) gameProcessor.minecraftDispatcher
+                else gameProcessor.asyncDispatcher
+            gameProcessor.scope.launch(dispatcher) {
+                flow.emit(event)
             }
         }
         registerEvent(
@@ -102,15 +168,11 @@ object GameEventManagerImpl : GameEventManager {
                 val isRegisterBeforeStart = function.hasAnnotation<RegisterBeforeStart>()
                 val run = fun (event: Event) { runBlocking { function.callSuspend(event) } }
 
-                val eventExecutor = eventExecutor(eventClass) { _, event ->
+                val eventExecutor = eventExecutor(
+                    eventClass, gameProcessor, isListeningAllEvent
+                ) { _, event ->
                     if (isRegisterBeforeStart || gameProcessor.isStarted) {
-                        if (isListeningAllEvent) {
-                            run(event)
-                        } else {
-                            if (isGameEvent(event, gameProcessor)) {
-                                run(event)
-                            }
-                        }
+                        run(event)
                     }
                 }
                 registerEvent(
@@ -125,6 +187,7 @@ object GameEventManagerImpl : GameEventManager {
     }
 
     override fun unregisterListeners(gameProcessor: GameProcessor) {
+
         listeners
             .getOrDefault(gameProcessor, listOf())
             .forEach(HandlerList::unregisterAll)
@@ -159,12 +222,14 @@ object GameEventManagerImpl : GameEventManager {
     }
 
     private fun <T : Event> eventExecutor(
-        clazz: Class<T>, listenerData: (listener: Listener, event: T) -> Unit
+        clazz: Class<T>, gameProcessor: GameProcessor, isListeningAllEvent: Boolean, listenerData: (listener: Listener, event: T) -> Unit
     ) = EventExecutor { listener, event ->
         kotlin.runCatching {
             if (!clazz.isAssignableFrom(event.javaClass)) return@EventExecutor
-            @Suppress("UNCHECKED_CAST")
-            listenerData(listener, event as T)
+            if (isListeningAllEvent || isGameEvent(event, gameProcessor)) {
+                @Suppress("UNCHECKED_CAST")
+                listenerData(listener, event as T)
+            }
         }.exceptionOrNull()?.let {
             if (it is InvocationTargetException) throw EventException(it.cause)
         }
